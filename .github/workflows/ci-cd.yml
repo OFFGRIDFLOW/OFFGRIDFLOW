@@ -50,7 +50,7 @@ jobs:
   # ===========================================================================
   lint-test:
     name: Lint & Test
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     
     services:
       postgres:
@@ -147,7 +147,7 @@ jobs:
   # ===========================================================================
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: lint-test
     
     outputs:
@@ -194,8 +194,8 @@ jobs:
             type=sha,prefix=
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Blacksmith Builder
+        uses: useblacksmith/setup-docker-builder@v1
 
       - name: Login to Container Registry
         if: github.event_name != 'pull_request'
@@ -206,24 +206,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push API image
-        uses: docker/build-push-action@v5
+        uses: useblacksmith/build-push-action@v2
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@v5
+        uses: useblacksmith/build-push-action@v2
         with:
           context: ./web
           file: ./web/Dockerfile.prod
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.meta.outputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.API_URL }}
 
@@ -232,7 +228,7 @@ jobs:
   # ===========================================================================
   security:
     name: Security Scan
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: lint-test
     permissions:
       security-events: write
@@ -276,7 +272,7 @@ jobs:
   # ===========================================================================
   e2e:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: build
     if: github.event_name == 'pull_request'
     
@@ -318,7 +314,7 @@ jobs:
   # ===========================================================================
   deploy-staging:
     name: Deploy to Staging
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [build, security]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
@@ -349,7 +345,7 @@ jobs:
   # ===========================================================================
   deploy-production:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [deploy-staging]
     if: github.ref == 'refs/heads/main'
     environment:

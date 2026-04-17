@@ -11,7 +11,7 @@ env:
 jobs:
   lint:
     name: Helm Lint
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
@@ -20,7 +20,7 @@ jobs:
 
   deploy-dev:
     name: Deploy Dev (canary)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [lint]
     environment: dev
     steps:
@@ -51,7 +51,7 @@ jobs:
 
   deploy-staging:
     name: Deploy Staging (blue-green)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [deploy-dev]
     environment: staging
     steps:
@@ -84,7 +84,7 @@ jobs:
 
   deploy-prod:
     name: Deploy Prod
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [deploy-staging]
     environment:
       name: production
@@ -110,7 +110,7 @@ jobs:
 
   post-deploy-validation:
     name: Post-deploy Validation
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [deploy-prod]
     steps:
       - uses: actions/checkout@v4
